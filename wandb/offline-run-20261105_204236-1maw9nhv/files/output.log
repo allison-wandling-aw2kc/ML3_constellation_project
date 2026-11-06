@@ -1,0 +1,18 @@
+Ultralytics 8.4.203 🚀 Python-3.10.22 torch-2.14.1
+Traceback (most recent call last):
+  File "/Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/training/ultralytics/train_script.py", line 28, in <module>
+    results = model.train(data=model_to_train['dataset'],
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/constellation/lib/python3.10/site-packages/ultralytics/engine/model.py", line 891, in train
+    self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/constellation/lib/python3.10/site-packages/ultralytics/models/yolo/detect/train.py", line 60, in __init__
+    super().__init__(cfg, overrides, _callbacks)
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/constellation/lib/python3.10/site-packages/ultralytics/engine/trainer.py", line 154, in __init__
+    self.device = select_device(self.args.device)
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/constellation/lib/python3.10/site-packages/ultralytics/utils/torch_utils.py", line 337, in select_device
+    raise ValueError(
+ValueError: Invalid CUDA 'device=0' requested. Use 'device=cpu' or pass valid CUDA device(s) if available, i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.
+
+torch.cuda.is_available(): False
+torch.cuda.device_count(): 0
+os.environ['CUDA_VISIBLE_DEVICES']: None
+See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no CUDA devices are seen by torch.
