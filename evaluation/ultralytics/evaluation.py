@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 import os
-folder = 'F:\\model_pts\\' # Change to the model path (can be downloaded from models/)
+folder = '/Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/pretrained/' # Change to the model path (can be downloaded from models/)
 for file in os.listdir(folder):
     print(file)
     model = YOLO(folder+file)
-    model.val(data='constellation_v2.yaml')
+    model.val(data='/Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation.yaml')
