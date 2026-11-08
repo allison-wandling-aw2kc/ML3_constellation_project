@@ -1,7 +1,7 @@
 path: /Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset
 train: /Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset/images/train
-val: /Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset/images/val
-test: /Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset/images/val
+val: /Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset/images/val_split
+test: /Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset/images/test_split
 
 nc: 2
 names: ['vehicle', 'pedestrian']
