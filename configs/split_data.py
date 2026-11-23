@@ -1,71 +1,69 @@
 #!/usr/bin/env python3
-import os
-import shutil
 import random
+import shutil
 from pathlib import Path
 
 
-def split_dataset_by_name(image_dir, label_dir, output_root=None, val_ratio=0.5, seed=42):
-    """
-    Split images and labels in lockstep using the same randomized selection.
+def split_dataset_by_name(train_image_dir, train_label_dir, val_ratio=0.15, seed=42):
+    """Move a seeded 15% subset of train images and matching labels into val."""
+    train_image_dir = Path(train_image_dir)
+    train_label_dir = Path(train_label_dir)
 
-    Output structure:
-      <images_root>/val_split/
-      <images_root>/test_split/
-      <labels_root>/val_split/
-      <labels_root>/test_split/
-    """
-    image_dir = Path(image_dir)
-    label_dir = Path(label_dir)
-    images_root = image_dir.parent
-    labels_root = label_dir.parent
+    if not train_image_dir.exists():
+        raise FileNotFoundError(f"Image directory does not exist: {train_image_dir}")
+    if not train_label_dir.exists():
+        raise FileNotFoundError(f"Label directory does not exist: {train_label_dir}")
+    if not 0 < val_ratio < 1:
+        raise ValueError("val_ratio must be between 0 and 1")
 
-    if not image_dir.exists():
-        raise FileNotFoundError(f"Image directory does not exist: {image_dir}")
-    if not label_dir.exists():
-        raise FileNotFoundError(f"Label directory does not exist: {label_dir}")
+    images_root = train_image_dir.parent
+    labels_root = train_label_dir.parent
+    val_image_dir = images_root / "val"
+    val_label_dir = labels_root / "val"
 
-    image_files = sorted([p for p in image_dir.iterdir() if p.is_file()])
+    val_image_dir.mkdir(parents=True, exist_ok=True)
+    val_label_dir.mkdir(parents=True, exist_ok=True)
+
+    image_files = sorted(p for p in train_image_dir.iterdir() if p.is_file())
     if not image_files:
-        raise ValueError(f"No image files found in {image_dir}")
+        raise ValueError(f"No image files found in {train_image_dir}")
+
+    existing_val_count = len(list(val_image_dir.glob('*.*')))
+    total_count = len(image_files) + existing_val_count
+    target_val_count = max(1, int(total_count * val_ratio))
+    remaining_to_move = max(0, target_val_count - existing_val_count)
 
     random.seed(seed)
     random.shuffle(image_files)
 
-    split_index = max(1, int(len(image_files) * val_ratio))
-    val_images = image_files[:split_index]
-    test_images = image_files[split_index:]
+    val_images = image_files[:remaining_to_move]
 
-    val_image_out = images_root / "val_split"
-    val_label_out = labels_root / "val_split"
-    test_image_out = images_root / "test_split"
-    test_label_out = labels_root / "test_split"
-
-    for folder in [val_image_out, val_label_out, test_image_out, test_label_out]:
-        folder.mkdir(parents=True, exist_ok=True)
-
-    def copy_matching_label(image_path, out_img_dir, out_label_dir):
-        stem = image_path.stem
-        label_path = label_dir / f"{stem}.txt"
+    moved = 0
+    for image_path in val_images:
+        label_path = train_label_dir / f"{image_path.stem}.txt"
         if not label_path.exists():
-            raise FileNotFoundError(f"Matching label not found for image: {image_path.name} -> {label_path}")
+            raise FileNotFoundError(
+                f"Matching label not found for image: {image_path.name} -> {label_path}"
+            )
 
-        shutil.copy2(image_path, out_img_dir / image_path.name)
-        shutil.copy2(label_path, out_label_dir / label_path.name)
+        image_destination = val_image_dir / image_path.name
+        label_destination = val_label_dir / label_path.name
 
-    for img in val_images:
-        copy_matching_label(img, val_image_out, val_label_out)
+        if image_destination.exists() or label_destination.exists():
+            continue
 
-    for img in test_images:
-        copy_matching_label(img, test_image_out, test_label_out)
+        shutil.move(str(image_path), str(image_destination))
+        shutil.move(str(label_path), str(label_destination))
+        moved += 1
 
-    print(f"Copied {len(val_images)} image/label pairs to {val_image_out} and {val_label_out}")
-    print(f"Copied {len(test_images)} image/label pairs to {test_image_out} and {test_label_out}")
-    print(f"Total source image files: {len(image_files)}")
+    print(f"Moved {moved} additional image/label pairs from train to val")
+    print(f"Images: {val_image_dir}")
+    print(f"Labels: {val_label_dir}")
+    print(f"Remaining training images: {len(list(train_image_dir.glob('*')))}")
 
 
 if __name__ == "__main__":
-    image_dir = "/Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset/images/val"
-    label_dir = "/Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset/labels/val"
-    output_root = "/Users/alliewandling/Documents/uva_masters/ML3/constellation-dataset/configs/constellation_dataset"
-    split_dataset_by_name(image_dir, label_dir, output_root, val_ratio=0.5, seed=42)
+    dataset_root = Path(__file__).resolve().parent / "constellation_dataset"
+    train_image_dir = dataset_root / "images" / "train"
+    train_label_dir = dataset_root / "labels" / "train"
+    split_dataset_by_name(train_image_dir, train_label_dir, val_ratio=0.15, seed=42)
